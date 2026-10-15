@@ -1,0 +1,590 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>RAD PROJECT</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Onest:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+  /* Layout: рабочий стол студии — светлая «калька», чернильные кнопки, карточки как листы с штампом-шифром */
+  :root {
+    --bg: 241 242 239; --surface: 255 255 255; --sunk: 247 248 245;
+    --ink: 24 27 31; --muted: 104 110 118; --line: 221 223 217;
+    --accent: 28 32 40; --on-accent: 250 250 248;
+    --g-bg: 229 245 234; --g-fg: 21 108 56; --g-bd: 128 196 150;
+    --b-bg: 229 238 252; --b-fg: 30 77 168; --b-bd: 145 178 232;
+    --y-bg: 253 245 207; --y-fg: 128 94 0; --y-bd: 226 196 86;
+    --r-bg: 252 232 230; --r-fg: 178 34 34; --r-bd: 234 148 142;
+  }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+    --bg: 19 21 24; --surface: 28 31 35; --sunk: 23 25 29;
+    --ink: 235 236 232; --muted: 150 156 163; --line: 51 55 61;
+    --accent: 235 236 232; --on-accent: 22 24 28;
+    --g-bg: 21 46 32; --g-fg: 122 214 154; --g-bd: 46 104 68;
+    --b-bg: 22 36 64; --b-fg: 142 182 246; --b-bd: 52 82 140;
+    --y-bg: 52 43 12; --y-fg: 238 204 92; --y-bd: 118 96 26;
+    --r-bg: 60 24 24; --r-fg: 246 142 136; --r-bd: 128 50 50;
+    color-scheme: dark; } }
+  :root[data-theme="dark"] {
+    --bg: 19 21 24; --surface: 28 31 35; --sunk: 23 25 29;
+    --ink: 235 236 232; --muted: 150 156 163; --line: 51 55 61;
+    --accent: 235 236 232; --on-accent: 22 24 28;
+    --g-bg: 21 46 32; --g-fg: 122 214 154; --g-bd: 46 104 68;
+    --b-bg: 22 36 64; --b-fg: 142 182 246; --b-bd: 52 82 140;
+    --y-bg: 52 43 12; --y-fg: 238 204 92; --y-bd: 118 96 26;
+    --r-bg: 60 24 24; --r-fg: 246 142 136; --r-bd: 128 50 50;
+    color-scheme: dark;
+  }
+  body { margin: 0; background: rgb(var(--bg)); color: rgb(var(--ink)); font-family: "Onest", system-ui, -apple-system, "Segoe UI", sans-serif; }
+  .wrap { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 28px 64px; }
+  h1, h2, h3 { text-wrap: balance; }
+  .tnum { font-variant-numeric: tabular-nums; }
+  .field { width: 100%; background: rgb(var(--surface)); border: 1px solid rgb(var(--line)); border-radius: 8px; padding: 8px 10px; font-size: 14px; color: rgb(var(--ink)); }
+  .field:focus { outline: 2px solid rgb(var(--accent) / .35); outline-offset: 1px; border-color: rgb(var(--accent) / .6); }
+  :focus-visible { outline: 2px solid rgb(var(--accent) / .5); outline-offset: 2px; }
+  @keyframes pulse-red { 0%,100% { box-shadow: 0 0 0 0 rgb(var(--r-fg) / .55); } 60% { box-shadow: 0 0 0 7px rgb(var(--r-fg) / 0); } }
+  .pulse-red { animation: pulse-red 1.4s ease-out infinite; }
+  @media (prefers-reduced-motion: reduce) { .pulse-red { animation: none; } }
+</style>
+<script src="https://cdn.tailwindcss.com/3.4.17"></script>
+<script>
+  tailwind.config = {
+    theme: { extend: {
+      fontFamily: { display: ['Unbounded', 'system-ui', 'sans-serif'], body: ['Onest', 'system-ui', 'sans-serif'], mono: ['"JetBrains Mono"', 'ui-monospace', 'monospace'] },
+      colors: {
+        bg: 'rgb(var(--bg) / <alpha-value>)', surface: 'rgb(var(--surface) / <alpha-value>)', sunk: 'rgb(var(--sunk) / <alpha-value>)',
+        ink: 'rgb(var(--ink) / <alpha-value>)', muted: 'rgb(var(--muted) / <alpha-value>)', line: 'rgb(var(--line) / <alpha-value>)',
+        accent: 'rgb(var(--accent) / <alpha-value>)', onaccent: 'rgb(var(--on-accent) / <alpha-value>)',
+        g: { bg: 'rgb(var(--g-bg) / <alpha-value>)', fg: 'rgb(var(--g-fg) / <alpha-value>)', bd: 'rgb(var(--g-bd) / <alpha-value>)' },
+        b: { bg: 'rgb(var(--b-bg) / <alpha-value>)', fg: 'rgb(var(--b-fg) / <alpha-value>)', bd: 'rgb(var(--b-bd) / <alpha-value>)' },
+        y: { bg: 'rgb(var(--y-bg) / <alpha-value>)', fg: 'rgb(var(--y-fg) / <alpha-value>)', bd: 'rgb(var(--y-bd) / <alpha-value>)' },
+        r: { bg: 'rgb(var(--r-bg) / <alpha-value>)', fg: 'rgb(var(--r-fg) / <alpha-value>)', bd: 'rgb(var(--r-bd) / <alpha-value>)' },
+      },
+    } },
+  };
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/htm@3.1.1/dist/htm.umd.js"></script>
+
+</head>
+<body>
+<div id="root"></div>
+
+<script>
+(function () {
+  const { useState, useEffect, useMemo, useRef } = React;
+  const html = htm.bind(React.createElement);
+
+  /* ---------- Справочники ---------- */
+  const CATEGORIES = ['Этап 1. Разработка концепции', 'Этап 2. Визуализация', 'Этап 3. Планировочные решения', 'Этап 4. Комплектация', 'Другое'];
+  const TYPES = {
+    payment:         { label: 'Оплата',                   tone: 'g' },
+    partial_payment: { label: 'Частичная оплата',         tone: 'b' },
+    in_progress:     { label: 'Выполняется',              tone: 'y' },
+    completed_act:   { label: 'Завершен / выставлен акт', tone: 'r' },
+  };
+  const TONE = {
+    g: { badge: 'bg-g-bg text-g-fg border-g-bd', dot: 'bg-g-fg', border: 'border-g-bd', stripe: 'border-l-g-bd', soft: 'bg-g-bg/50' },
+    b: { badge: 'bg-b-bg text-b-fg border-b-bd', dot: 'bg-b-fg', border: 'border-b-bd', stripe: 'border-l-b-bd', soft: 'bg-b-bg/50' },
+    y: { badge: 'bg-y-bg text-y-fg border-y-bd', dot: 'bg-y-fg', border: 'border-y-bd', stripe: 'border-l-y-bd', soft: 'bg-y-bg/50' },
+    r: { badge: 'bg-r-bg text-r-fg border-r-bd', dot: 'bg-r-fg', border: 'border-r-bd', stripe: 'border-l-r-bd', soft: 'bg-r-bg/50' },
+  };
+  const STAGE_STATUS = { pending: 'Ожидается', in_progress: 'В работе', completed: 'Завершено' };
+  const CONTR_STATUS = { pending: 'Ожидает оплаты', paid: 'Оплачено' };
+  const STORAGE_KEY = 'rad-project:v1';
+
+  /* ---------- Утилиты ---------- */
+  const uid = () => Math.random().toString(36).slice(2, 9) + Date.now().toString(36).slice(-4);
+  const todayStr = () => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
+  const fmtDate = (s) => { if (!s) return '—'; const [y, m, d] = s.split('-'); return d && m && y ? `${d}.${m}.${y}` : s; };
+  const splitCategory = (c) => { const m = /^(Этап\s*\d+\.)\s*(.+)$/.exec(c || ''); return m ? { prefix: m[1], main: m[2] } : { prefix: '', main: c || '—' }; };
+  const isOverdue = (st) => st.date && st.date < todayStr() && st.status !== 'completed';
+  const byDate = (a, b) => (a.date || '9999').localeCompare(b.date || '9999');
+  const progressOf = (p) => p.stages.length ? Math.round(p.stages.filter((s) => s.status === 'completed').length / p.stages.length * 100) : 0;
+  const payState = (c, stages) => {
+    if (c.status === 'paid') return 'paid';
+    const st = stages.find((s) => s.id === c.linkedStageId);
+    return st && st.status === 'completed' ? 'due' : 'wait';
+  };
+  const stageOptionLabel = (s) => `${s.category} · ${TYPES[s.type]?.label || ''} · ${fmtDate(s.date)}`;
+  const projectCode = (i) => 'RAD-' + String(i + 1).padStart(3, '0');
+
+  /* ---------- Пример данных ---------- */
+  function seed() {
+    const s = (category, type, date, status, comment) => ({ id: uid(), category, type, date, status, comment });
+    const a = [
+      s(CATEGORIES[0], 'payment', '2026-08-18', 'completed', 'Аванс по договору поступил на р/с'),
+      s(CATEGORIES[0], 'completed_act', '2026-09-08', 'completed', 'Концепция согласована, акт №1 подписан'),
+      s(CATEGORIES[1], 'partial_payment', '2026-09-22', 'completed', 'Оплачены визуализации кухни-гостиной и спальни'),
+      s(CATEGORIES[1], 'in_progress', '2026-10-24', 'in_progress', 'Детская и два санузла, 2 круга правок'),
+      s(CATEGORIES[2], 'in_progress', '2026-11-10', 'pending', 'Обмерный план, план расстановки, электрика'),
+      s(CATEGORIES[3], 'payment', '2026-12-05', 'pending', 'Оплата после утверждения ведомости'),
+    ];
+    const b = [
+      s(CATEGORIES[0], 'payment', '2026-09-01', 'completed', 'Предоплата за весь объём'),
+      s(CATEGORIES[2], 'in_progress', '2026-10-06', 'in_progress', 'Зонирование зала и барной стойки, ждём ТЗ технолога'),
+      s(CATEGORIES[4], 'completed_act', '2026-10-30', 'pending', 'Подбор вывески и навигации — отдельное допсоглашение'),
+    ];
+    return [
+      { id: uid(), name: 'Квартира 118 м², ЖК «Северный парк»', description: 'Полный дизайн-проект: 3 спальни, кухня-гостиная, авторский надзор.', clientContact: 'Анна Смирнова · +7 916 555-01-23', createdAt: '2026-08-12T10:00:00.000Z', stages: a,
+        contractors: [
+          { id: uid(), name: 'Илья Воронов', task: 'Концептуальные коллажи и 3D-эскизы', date: '2026-09-05', linkedStageId: a[1].id, comment: 'Оплата после подписания акта по этапу 1', status: 'pending' },
+          { id: uid(), name: 'Марина Ким', task: 'Визуализации кухни-гостиной и спальни', date: '2026-09-20', linkedStageId: a[2].id, comment: 'Рассчитались переводом 23.09', status: 'paid' },
+          { id: uid(), name: 'Бюро «Линия»', task: 'Рабочие чертежи: планы, развёртки, электрика', date: '2026-11-05', linkedStageId: a[4].id, comment: 'Половина при сдаче, половина после правок', status: 'pending' },
+        ] },
+      { id: uid(), name: 'Кофейня «Зерно», 64 м²', description: 'Интерьер кофейни с барной зоной и посадкой на 22 места.', clientContact: 'ООО «Зерно», Дмитрий · zerno@example.com', createdAt: '2026-08-28T10:00:00.000Z', stages: b,
+        contractors: [
+          { id: uid(), name: 'Павел Орлов', task: 'Планировка и схема оборудования', date: '2026-10-04', linkedStageId: b[1].id, comment: 'Согласовать с технологом до сдачи', status: 'pending' },
+        ] },
+    ];
+  }
+
+  function loadState() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) { const d = JSON.parse(raw); if (Array.isArray(d.projects)) return d; }
+    } catch (e) {}
+    return { projects: seed(), demo: true };
+  }
+
+  /* ---------- Иконки (контуры Lucide) ---------- */
+  const P = {
+    plus: ['M5 12h14', 'M12 5v14'],
+    trash: ['M3 6h18', 'M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6', 'M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2', 'M10 11v6', 'M14 11v6'],
+    pencil: ['M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z', 'm15 5 4 4'],
+    check: ['M20 6 9 17l-5-5'],
+    x: ['M18 6 6 18', 'm6 6 12 12'],
+    back: ['m12 19-7-7 7-7', 'M19 12H5'],
+    list: ['M8 6h13', 'M8 12h13', 'M8 18h13', 'M3 6h.01', 'M3 12h.01', 'M3 18h.01'],
+    timeline: ['M12 3v6', 'M12 15v6', 'M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z'],
+    users: ['M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2', 'M13 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0Z', 'M22 21v-2a4 4 0 0 0-3-3.87', 'M16 3.13a4 4 0 0 1 0 7.75'],
+    layers: ['m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z', 'm22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65', 'm22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65'],
+    calendar: ['M8 2v4', 'M16 2v4', 'M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z', 'M3 10h18'],
+    phone: ['M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z'],
+    link: ['M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71', 'M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71'],
+    alert: ['m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3', 'M12 9v4', 'M12 17h.01'],
+    msg: ['M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z'],
+  };
+  function Icon({ name, size = 16, className = '' }) {
+    return html`<svg width=${size} height=${size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className=${'shrink-0 ' + className} aria-hidden="true">
+      ${P[name].map((d, i) => html`<path key=${i} d=${d} />`)}
+    </svg>`;
+  }
+
+  /* ---------- Общие элементы ---------- */
+  const btnPrimary = 'inline-flex items-center gap-2 rounded-lg bg-accent text-onaccent px-4 py-2.5 text-sm font-medium hover:opacity-90 transition';
+  const btnGhost = 'inline-flex items-center gap-2 rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink hover:bg-sunk transition';
+  const iconBtn = 'inline-flex h-8 w-8 items-center justify-center rounded-md text-muted hover:text-ink hover:bg-sunk transition';
+
+  function Label({ children, htmlFor }) {
+    return html`<label htmlFor=${htmlFor} className="block text-[11px] font-medium uppercase tracking-wider text-muted mb-1.5">${children}</label>`;
+  }
+
+  function CategoryLabel({ category, size = 'md' }) {
+    const { prefix, main } = splitCategory(category);
+    return html`<div className="min-w-0">
+      ${prefix && html`<div className="text-[11px] leading-tight text-muted/80 font-mono tracking-wide">${prefix}</div>`}
+      <div className=${(size === 'lg' ? 'text-base' : 'text-[15px]') + ' font-semibold leading-snug text-ink'}>${main}</div>
+    </div>`;
+  }
+
+  function TypeBadge({ type }) {
+    const t = TYPES[type] || TYPES.payment;
+    return html`<span className=${'inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-medium whitespace-nowrap ' + TONE[t.tone].badge}>
+      <span className=${'h-1.5 w-1.5 rounded-full ' + TONE[t.tone].dot}></span>${t.label}
+    </span>`;
+  }
+
+  function StatusSelect({ id, value, options, onChange, tone }) {
+    return html`<select id=${id} value=${value} onChange=${(e) => onChange(e.target.value)}
+      className=${'rounded-md border px-2 py-1 text-xs font-medium cursor-pointer ' + (tone || 'border-line bg-surface text-ink')}>
+      ${Object.entries(options).map(([k, v]) => html`<option key=${k} value=${k}>${v}</option>`)}
+    </select>`;
+  }
+  const stageStatusTone = (s) => s === 'completed' ? 'border-g-bd bg-g-bg text-g-fg' : s === 'in_progress' ? 'border-line bg-sunk text-ink' : 'border-line bg-surface text-muted';
+
+  function ConfirmDelete({ onConfirm, title = 'Удалить' }) {
+    const [armed, setArmed] = useState(false);
+    useEffect(() => { if (!armed) return; const t = setTimeout(() => setArmed(false), 3000); return () => clearTimeout(t); }, [armed]);
+    return armed
+      ? html`<button onClick=${onConfirm} className="inline-flex h-8 items-center gap-1 rounded-md bg-r-bg border border-r-bd px-2 text-xs font-medium text-r-fg">Удалить?</button>`
+      : html`<button onClick=${() => setArmed(true)} className=${iconBtn} title=${title} aria-label=${title}><${Icon} name="trash" /></button>`;
+  }
+
+  /* ---------- Формы ---------- */
+  function StageForm({ initial, onSave, onCancel, idp }) {
+    const [f, setF] = useState(initial || { category: CATEGORIES[0], type: 'payment', date: todayStr(), comment: '', status: 'pending' });
+    const set = (k) => (e) => setF({ ...f, [k]: e.target.value });
+    return html`<form onSubmit=${(e) => { e.preventDefault(); onSave(f); }} className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[1.4fr_1.2fr_.9fr_.9fr]">
+      <div><${Label} htmlFor=${idp + '-cat'}>Этап<//><select id=${idp + '-cat'} className="field" value=${f.category} onChange=${set('category')}>${CATEGORIES.map((c) => html`<option key=${c}>${c}</option>`)}</select></div>
+      <div><${Label} htmlFor=${idp + '-type'}>Тип события<//><select id=${idp + '-type'} className="field" value=${f.type} onChange=${set('type')}>${Object.entries(TYPES).map(([k, v]) => html`<option key=${k} value=${k}>${v.label}</option>`)}</select></div>
+      <div><${Label} htmlFor=${idp + '-date'}>Дата / дедлайн<//><input id=${idp + '-date'} type="date" className="field tnum" value=${f.date} onChange=${set('date')} /></div>
+      <div><${Label} htmlFor=${idp + '-st'}>Статус<//><select id=${idp + '-st'} className="field" value=${f.status} onChange=${set('status')}>${Object.entries(STAGE_STATUS).map(([k, v]) => html`<option key=${k} value=${k}>${v}</option>`)}</select></div>
+      <div className="sm:col-span-2 lg:col-span-4"><${Label} htmlFor=${idp + '-cm'}>Комментарий<//><textarea id=${idp + '-cm'} rows="2" className="field resize-y" placeholder="Условия, номер акта, договорённости по оплате" value=${f.comment} onChange=${set('comment')}></textarea></div>
+      <div className="sm:col-span-2 lg:col-span-4 flex flex-wrap gap-2">
+        <button type="submit" className=${btnPrimary}><${Icon} name="check" />Сохранить</button>
+        <button type="button" onClick=${onCancel} className=${btnGhost}>Отмена</button>
+      </div>
+    </form>`;
+  }
+
+  function ContractorForm({ initial, stages, onSave, onCancel, idp }) {
+    const [f, setF] = useState(initial || { name: '', task: '', date: '', linkedStageId: stages[0]?.id || '', comment: '', status: 'pending' });
+    const [err, setErr] = useState('');
+    const set = (k) => (e) => setF({ ...f, [k]: e.target.value });
+    const submit = (e) => { e.preventDefault(); if (!f.name.trim()) { setErr('Укажите имя подрядчика или название компании.'); return; } onSave({ ...f, name: f.name.trim() }); };
+    return html`<form onSubmit=${submit} className="grid gap-3">
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div><${Label} htmlFor=${idp + '-n'}>Имя / компания *<//><input id=${idp + '-n'} className="field" value=${f.name} onChange=${(e) => { setErr(''); set('name')(e); }} placeholder="Например, Илья Воронов" />${err && html`<p className="mt-1 text-xs text-r-fg">${err}</p>`}</div>
+        <div><${Label} htmlFor=${idp + '-d'}>Дедлайн<//><input id=${idp + '-d'} type="date" className="field tnum" value=${f.date} onChange=${set('date')} /></div>
+      </div>
+      <div><${Label} htmlFor=${idp + '-t'}>Задача<//><input id=${idp + '-t'} className="field" value=${f.task} onChange=${set('task')} placeholder="Визуализация гостиной, 4 ракурса" /></div>
+      <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
+        <div className="min-w-0"><${Label} htmlFor=${idp + '-s'}>Привязка к этапу<//>
+          <select id=${idp + '-s'} className="field" value=${f.linkedStageId} onChange=${set('linkedStageId')}>
+            <option value="">Без привязки</option>
+            ${[...stages].sort(byDate).map((s) => html`<option key=${s.id} value=${s.id}>${stageOptionLabel(s)}</option>`)}
+          </select></div>
+        <div><${Label} htmlFor=${idp + '-ps'}>Оплата<//><select id=${idp + '-ps'} className="field" value=${f.status} onChange=${set('status')}>${Object.entries(CONTR_STATUS).map(([k, v]) => html`<option key=${k} value=${k}>${v}</option>`)}</select></div>
+      </div>
+      <div><${Label} htmlFor=${idp + '-c'}>Комментарий<//><textarea id=${idp + '-c'} rows="2" className="field resize-y" placeholder="Условия выплаты, реквизиты, договорённости" value=${f.comment} onChange=${set('comment')}></textarea></div>
+      <div className="flex flex-wrap gap-2">
+        <button type="submit" className=${btnPrimary}><${Icon} name="check" />Сохранить</button>
+        <button type="button" onClick=${onCancel} className=${btnGhost}>Отмена</button>
+      </div>
+    </form>`;
+  }
+
+  /* ---------- Дашборд ---------- */
+  function NewProjectForm({ onCreate, onCancel }) {
+    const [f, setF] = useState({ name: '', clientContact: '', description: '' });
+    const [err, setErr] = useState('');
+    const submit = (e) => { e.preventDefault(); if (!f.name.trim()) { setErr('Название обязательно — по нему проект будет в списке.'); return; } onCreate({ ...f, name: f.name.trim() }); };
+    return html`<form onSubmit=${submit} className="rounded-xl border border-line bg-surface p-4 sm:p-5 grid gap-3 shadow-sm">
+      <h2 className="font-display text-sm font-medium tracking-wide">Новый проект</h2>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div><${Label} htmlFor="np-name">Название *<//><input id="np-name" autoFocus className="field" value=${f.name} onChange=${(e) => { setErr(''); setF({ ...f, name: e.target.value }); }} placeholder="Квартира 86 м², ЖК «Лесной»" />${err && html`<p className="mt-1 text-xs text-r-fg">${err}</p>`}</div>
+        <div><${Label} htmlFor="np-contact">Контакты заказчика<//><input id="np-contact" className="field" value=${f.clientContact} onChange=${(e) => setF({ ...f, clientContact: e.target.value })} placeholder="Имя, телефон, почта" /></div>
+      </div>
+      <div><${Label} htmlFor="np-desc">Описание<//><textarea id="np-desc" rows="2" className="field resize-y" value=${f.description} onChange=${(e) => setF({ ...f, description: e.target.value })} placeholder="Объём работ, особенности объекта"></textarea></div>
+      <div className="flex flex-wrap gap-2">
+        <button type="submit" className=${btnPrimary}><${Icon} name="plus" />Создать проект</button>
+        <button type="button" onClick=${onCancel} className=${btnGhost}>Отмена</button>
+      </div>
+    </form>`;
+  }
+
+  function ProjectCard({ p, index, onOpen, onDelete }) {
+    const [confirm, setConfirm] = useState(false);
+    const pct = progressOf(p);
+    const done = p.stages.filter((s) => s.status === 'completed').length;
+    const due = p.contractors.filter((c) => payState(c, p.stages) === 'due').length;
+    const overdue = p.stages.filter(isOverdue).length;
+    return html`<article className="group relative flex flex-col rounded-xl border border-line bg-surface transition hover:border-ink/30 hover:shadow-md">
+      <button onClick=${onOpen} className="flex flex-1 flex-col gap-3 p-5 text-left rounded-xl">
+        <div className="flex items-start justify-between gap-3 pr-8">
+          <span className="font-mono text-[11px] tracking-widest text-muted">${projectCode(index)}</span>
+        </div>
+        <h3 className="text-lg font-semibold leading-snug">${p.name}</h3>
+        ${p.description && html`<p className="text-sm text-muted leading-relaxed">${p.description}</p>`}
+        ${p.clientContact && html`<p className="flex items-start gap-2 text-sm text-ink/80"><${Icon} name="phone" size=${14} className="mt-0.5 text-muted" /><span className="min-w-0 break-words">${p.clientContact}</span></p>`}
+        <div className="mt-auto pt-2">
+          <div className="flex items-baseline justify-between text-xs text-muted mb-1.5 tnum">
+            <span>Этапов завершено: ${done} из ${p.stages.length}</span>
+            <span className="font-mono font-medium text-ink">${pct}%</span>
+          </div>
+          <div className="h-1.5 w-full rounded-full bg-sunk overflow-hidden border border-line/60">
+            <div className="h-full rounded-full bg-g-fg transition-all" style=${{ width: pct + '%' }}></div>
+          </div>
+          ${(due > 0 || overdue > 0) && html`<div className="mt-3 flex flex-wrap gap-1.5">
+            ${due > 0 && html`<span className="inline-flex items-center gap-1.5 rounded-full border border-r-bd bg-r-bg px-2 py-0.5 text-xs font-medium text-r-fg"><span className="h-1.5 w-1.5 rounded-full bg-r-fg pulse-red"></span>Пора платить: ${due}</span>`}
+            ${overdue > 0 && html`<span className="inline-flex items-center gap-1 rounded-full border border-y-bd bg-y-bg px-2 py-0.5 text-xs font-medium text-y-fg"><${Icon} name="alert" size=${12} />Просрочено этапов: ${overdue}</span>`}
+          </div>`}
+        </div>
+      </button>
+      <button onClick=${() => setConfirm(true)} aria-label="Удалить проект" title="Удалить проект"
+        className=${iconBtn + ' absolute right-3 top-3 md:opacity-0 md:group-hover:opacity-100 focus:opacity-100'}><${Icon} name="trash" /></button>
+      ${confirm && html`<div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 rounded-xl bg-surface/95 p-5 text-center backdrop-blur-sm">
+        <p className="text-sm font-medium">Удалить проект «${p.name}»?</p>
+        <p className="text-xs text-muted">Этапы и подрядчики проекта тоже будут удалены.</p>
+        <div className="flex gap-2">
+          <button onClick=${onDelete} className="rounded-lg border border-r-bd bg-r-bg px-3 py-2 text-sm font-medium text-r-fg">Удалить</button>
+          <button onClick=${() => setConfirm(false)} className=${btnGhost}>Отмена</button>
+        </div>
+      </div>`}
+    </article>`;
+  }
+
+  function Dashboard({ projects, demo, onCreate, onOpen, onDelete, onClearDemo }) {
+    const [adding, setAdding] = useState(false);
+    const totalDue = projects.reduce((n, p) => n + p.contractors.filter((c) => payState(c, p.stages) === 'due').length, 0);
+    return html`<div className="grid gap-6">
+      <header className="flex flex-wrap items-end justify-between gap-4 border-b border-line pb-6">
+        <div>
+          <h1 className="font-display text-3xl sm:text-4xl font-bold tracking-tight">RAD PROJECT</h1>
+          <p className="mt-1.5 text-muted">Контроль этапов и оплат</p>
+        </div>
+        <button onClick=${() => setAdding(true)} className=${btnPrimary}><${Icon} name="plus" />Новый проект</button>
+      </header>
+
+      ${demo && html`<div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-dashed border-line bg-sunk px-4 py-3 text-sm text-muted">
+        <span>Сейчас показаны примеры проектов, чтобы было видно, как работает планировщик.</span>
+        <button onClick=${onClearDemo} className=${btnGhost}>Начать с чистого листа</button>
+      </div>`}
+
+      ${adding && html`<${NewProjectForm} onCreate=${(f) => { onCreate(f); setAdding(false); }} onCancel=${() => setAdding(false)} />`}
+
+      ${projects.length > 0 && html`<div className="flex flex-wrap gap-x-6 gap-y-1 text-sm text-muted tnum">
+        <span>Проектов: <b className="text-ink font-semibold">${projects.length}</b></span>
+        <span>Активных этапов: <b className="text-ink font-semibold">${projects.reduce((n, p) => n + p.stages.filter((s) => s.status !== 'completed').length, 0)}</b></span>
+        <span className=${totalDue ? 'text-r-fg' : ''}>Выплат подрядчикам к оплате: <b className="font-semibold">${totalDue}</b></span>
+      </div>`}
+
+      ${projects.length === 0
+        ? html`<div className="rounded-xl border border-dashed border-line px-6 py-14 text-center">
+            <p className="font-medium">Проектов пока нет</p>
+            <p className="mt-1 text-sm text-muted">Нажмите «Новый проект», чтобы завести первый договор.</p>
+          </div>`
+        : html`<div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            ${projects.map((p, i) => html`<${ProjectCard} key=${p.id} p=${p} index=${i} onOpen=${() => onOpen(p.id)} onDelete=${() => onDelete(p.id)} />`)}
+          </div>`}
+    </div>`;
+  }
+
+  /* ---------- Этапы ---------- */
+  function StagesTab({ project, update }) {
+    const [mode, setMode] = useState(() => { try { return localStorage.getItem('rad-project:view') || 'list'; } catch (e) { return 'list'; } });
+    const [adding, setAdding] = useState(false);
+    const [editId, setEditId] = useState(null);
+    useEffect(() => { try { localStorage.setItem('rad-project:view', mode); } catch (e) {} }, [mode]);
+    const stages = [...project.stages].sort(byDate);
+
+    const addStage = (f) => { update((p) => ({ ...p, stages: [...p.stages, { ...f, id: uid() }] })); setAdding(false); };
+    const saveStage = (id, f) => { update((p) => ({ ...p, stages: p.stages.map((s) => s.id === id ? { ...s, ...f } : s) })); setEditId(null); };
+    const setStatus = (id, status) => update((p) => ({ ...p, stages: p.stages.map((s) => s.id === id ? { ...s, status } : s) }));
+    const del = (id) => update((p) => ({ ...p, stages: p.stages.filter((s) => s.id !== id), contractors: p.contractors.map((c) => c.linkedStageId === id ? { ...c, linkedStageId: '' } : c) }));
+    const linkedCount = (id) => project.contractors.filter((c) => c.linkedStageId === id).length;
+
+    const Actions = ({ s }) => html`<div className="flex items-center justify-end gap-0.5">
+      <button onClick=${() => setEditId(s.id)} className=${iconBtn} title="Редактировать" aria-label="Редактировать"><${Icon} name="pencil" /></button>
+      <${ConfirmDelete} onConfirm=${() => del(s.id)} title="Удалить этап" />
+    </div>`;
+    const DateCell = ({ s }) => html`<span className=${'font-mono text-sm tnum whitespace-nowrap ' + (isOverdue(s) ? 'text-r-fg' : '')}>
+      ${fmtDate(s.date)}${isOverdue(s) && html`<span className="block text-[10px] uppercase tracking-wider font-body font-medium">просрочено</span>`}
+    </span>`;
+    const Meta = ({ s }) => linkedCount(s.id) > 0 && html`<span className="inline-flex items-center gap-1 text-xs text-muted"><${Icon} name="users" size=${12} />${linkedCount(s.id)}</span>`;
+
+    return html`<div className="grid gap-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="inline-flex rounded-lg border border-line bg-surface p-0.5" role="tablist" aria-label="Вид">
+          ${[['list', 'Список', 'list'], ['timeline', 'Таймлайн', 'timeline']].map(([k, l, ic]) => html`<button key=${k} role="tab" aria-selected=${mode === k} onClick=${() => setMode(k)}
+            className=${'inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm transition ' + (mode === k ? 'bg-accent text-onaccent' : 'text-muted hover:text-ink')}><${Icon} name=${ic} size=${14} />${l}</button>`)}
+        </div>
+        <button onClick=${() => { setAdding(true); setEditId(null); }} className=${btnPrimary}><${Icon} name="plus" />Добавить этап</button>
+      </div>
+
+      <div className="flex flex-wrap gap-2">${Object.keys(TYPES).map((k) => html`<${TypeBadge} key=${k} type=${k} />`)}</div>
+
+      ${adding && html`<div className="rounded-xl border border-line bg-surface p-4 sm:p-5"><${StageForm} idp="new-stage" onSave=${addStage} onCancel=${() => setAdding(false)} /></div>`}
+
+      ${stages.length === 0 && !adding && html`<div className="rounded-xl border border-dashed border-line px-6 py-12 text-center text-sm text-muted">Этапов пока нет. Добавьте первый — например, аванс по договору.</div>`}
+
+      ${stages.length > 0 && mode === 'list' && html`<div>
+        <div className="hidden md:block overflow-x-auto rounded-xl border border-line bg-surface">
+          <table className="w-full text-left text-sm">
+            <thead className="border-b border-line bg-sunk text-[11px] uppercase tracking-wider text-muted">
+              <tr><th className="px-4 py-2.5 font-medium">Этап</th><th className="px-3 py-2.5 font-medium">Тип</th><th className="px-3 py-2.5 font-medium">Дата</th><th className="px-3 py-2.5 font-medium">Статус</th><th className="px-3 py-2.5 font-medium">Комментарий</th><th className="px-3 py-2.5"></th></tr>
+            </thead>
+            <tbody>
+              ${stages.map((s) => editId === s.id
+                ? html`<tr key=${s.id} className="border-b border-line last:border-0 bg-sunk"><td colSpan="6" className="p-4"><${StageForm} idp=${'e-' + s.id} initial=${s} onSave=${(f) => saveStage(s.id, f)} onCancel=${() => setEditId(null)} /></td></tr>`
+                : html`<tr key=${s.id} className=${'border-b border-line last:border-0 align-top ' + TONE[TYPES[s.type].tone].soft}>
+                    <td className=${'px-4 py-3 border-l-4 ' + TONE[TYPES[s.type].tone].stripe}><div className="flex items-start gap-2"><${CategoryLabel} category=${s.category} /></div><div className="mt-1"><${Meta} s=${s} /></div></td>
+                    <td className="px-3 py-3"><${TypeBadge} type=${s.type} /></td>
+                    <td className="px-3 py-3"><${DateCell} s=${s} /></td>
+                    <td className="px-3 py-3"><${StatusSelect} id=${'st-' + s.id} value=${s.status} options=${STAGE_STATUS} tone=${stageStatusTone(s.status)} onChange=${(v) => setStatus(s.id, v)} /></td>
+                    <td className="px-3 py-3 text-ink/80 max-w-xs">${s.comment || html`<span className="text-muted">—</span>`}</td>
+                    <td className="px-2 py-2"><${Actions} s=${s} /></td>
+                  </tr>`)}
+            </tbody>
+          </table>
+        </div>
+        <div className="grid gap-3 md:hidden">
+          ${stages.map((s) => editId === s.id
+            ? html`<div key=${s.id} className="rounded-xl border border-line bg-surface p-4"><${StageForm} idp=${'m-' + s.id} initial=${s} onSave=${(f) => saveStage(s.id, f)} onCancel=${() => setEditId(null)} /></div>`
+            : html`<div key=${s.id} className=${'rounded-xl border bg-surface p-4 grid gap-3 ' + TONE[TYPES[s.type].tone].border}>
+                <div className="flex items-start justify-between gap-2"><${CategoryLabel} category=${s.category} /><${Actions} s=${s} /></div>
+                <div className="flex flex-wrap items-center gap-2"><${TypeBadge} type=${s.type} /><${DateCell} s=${s} /><${Meta} s=${s} /></div>
+                ${s.comment && html`<p className="text-sm text-ink/80">${s.comment}</p>`}
+                <div><${StatusSelect} id=${'stm-' + s.id} value=${s.status} options=${STAGE_STATUS} tone=${stageStatusTone(s.status)} onChange=${(v) => setStatus(s.id, v)} /></div>
+              </div>`)}
+        </div>
+      </div>`}
+
+      ${stages.length > 0 && mode === 'timeline' && html`<ol className="relative ml-2 border-l-2 border-line pl-6 grid gap-5">
+        ${stages.map((s) => { const tone = TONE[TYPES[s.type].tone]; return html`<li key=${s.id} className="relative">
+          <span className=${'absolute -left-[33px] top-4 h-4 w-4 rounded-full border-4 border-bg ' + tone.dot}></span>
+          ${editId === s.id
+            ? html`<div className="rounded-xl border border-line bg-surface p-4"><${StageForm} idp=${'t-' + s.id} initial=${s} onSave=${(f) => saveStage(s.id, f)} onCancel=${() => setEditId(null)} /></div>`
+            : html`<div className=${'rounded-xl border-2 bg-surface p-4 ' + tone.border}>
+                <div className="flex flex-wrap items-start justify-between gap-2">
+                  <div className="flex items-center gap-2"><${Icon} name="calendar" size=${14} className="text-muted" /><${DateCell} s=${s} /></div>
+                  <${Actions} s=${s} />
+                </div>
+                <div className="mt-2"><${CategoryLabel} category=${s.category} size="lg" /></div>
+                <div className="mt-3 flex flex-wrap items-center gap-2"><${TypeBadge} type=${s.type} /><${StatusSelect} id=${'stt-' + s.id} value=${s.status} options=${STAGE_STATUS} tone=${stageStatusTone(s.status)} onChange=${(v) => setStatus(s.id, v)} /><${Meta} s=${s} /></div>
+                ${s.comment && html`<p className="mt-3 flex gap-2 text-sm text-ink/80"><${Icon} name="msg" size=${14} className="mt-0.5 text-muted" /><span>${s.comment}</span></p>`}
+              </div>`}
+        </li>`; })}
+      </ol>`}
+    </div>`;
+  }
+
+  /* ---------- Подрядчики ---------- */
+  function ContractorCard({ c, stages, onEdit, onDelete, onStatus }) {
+    const st = stages.find((s) => s.id === c.linkedStageId);
+    const state = payState(c, stages);
+    const frame = state === 'due' ? 'border-r-bd' : state === 'paid' ? 'border-g-bd' : 'border-line';
+    return html`<article className=${'relative flex flex-col gap-3 rounded-xl border-2 bg-surface p-4 ' + frame}>
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex items-start gap-2.5 min-w-0">
+          <span title=${state === 'due' ? 'Этап завершён, подрядчик не оплачен' : state === 'paid' ? 'Оплачено' : 'Этап ещё не завершён'}
+            className=${'mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full ' + (state === 'due' ? 'bg-r-fg pulse-red' : state === 'paid' ? 'bg-g-fg' : 'bg-line')}></span>
+          <div className="min-w-0">
+            <h3 className="font-semibold leading-snug break-words">${c.name}</h3>
+            ${c.task && html`<p className="mt-0.5 text-sm text-ink/80">${c.task}</p>`}
+          </div>
+        </div>
+        <div className="flex -mr-1 -mt-1">
+          <button onClick=${onEdit} className=${iconBtn} title="Редактировать" aria-label="Редактировать"><${Icon} name="pencil" /></button>
+          <${ConfirmDelete} onConfirm=${onDelete} title="Удалить подрядчика" />
+        </div>
+      </div>
+
+      ${state === 'due' && html`<div className="inline-flex w-fit items-center gap-1.5 rounded-md border border-r-bd bg-r-bg px-2.5 py-1 text-xs font-semibold uppercase tracking-wider text-r-fg"><${Icon} name="alert" size=${13} />Пора платить!</div>`}
+
+      <dl className="grid gap-2 text-sm">
+        <div className="flex items-start gap-2">
+          <dt className="sr-only">Этап</dt>
+          <${Icon} name="link" size=${14} className="mt-1 text-muted" />
+          <dd className=${'min-w-0 rounded-md px-1.5 -mx-1.5 ' + (st && st.status === 'completed' ? 'bg-g-bg text-g-fg' : '')}>
+            ${st ? html`<span>${splitCategory(st.category).prefix && html`<span className="font-mono text-[11px] opacity-70 mr-1">${splitCategory(st.category).prefix}</span>`}<span className="font-medium">${splitCategory(st.category).main}</span><span className="text-xs opacity-75"> · ${TYPES[st.type].label}${st.status === 'completed' ? ' · завершён' : ''}</span></span>`
+                 : html`<span className="text-muted">Не привязан к этапу</span>`}
+          </dd>
+        </div>
+        <div className="flex items-center gap-2"><dt className="sr-only">Дедлайн</dt><${Icon} name="calendar" size=${14} className="text-muted" /><dd className="font-mono tnum">${fmtDate(c.date)}</dd></div>
+        ${c.comment && html`<div className="flex items-start gap-2"><dt className="sr-only">Комментарий</dt><${Icon} name="msg" size=${14} className="mt-1 text-muted" /><dd className="text-ink/80">${c.comment}</dd></div>`}
+      </dl>
+
+      <div className="mt-auto pt-1">
+        <${StatusSelect} id=${'cs-' + c.id} value=${c.status} options=${CONTR_STATUS} onChange=${onStatus}
+          tone=${c.status === 'paid' ? 'border-g-bd bg-g-bg text-g-fg' : state === 'due' ? 'border-r-bd bg-r-bg text-r-fg' : 'border-line bg-surface text-ink'} />
+      </div>
+    </article>`;
+  }
+
+  function ContractorsTab({ project, update }) {
+    const [adding, setAdding] = useState(false);
+    const [editId, setEditId] = useState(null);
+    const list = project.contractors;
+    const counts = { due: 0, paid: 0, wait: 0 };
+    list.forEach((c) => counts[payState(c, project.stages)]++);
+    const add = (f) => { update((p) => ({ ...p, contractors: [...p.contractors, { ...f, id: uid() }] })); setAdding(false); };
+    const save = (id, f) => { update((p) => ({ ...p, contractors: p.contractors.map((c) => c.id === id ? { ...c, ...f } : c) })); setEditId(null); };
+    const del = (id) => update((p) => ({ ...p, contractors: p.contractors.filter((c) => c.id !== id) }));
+    const setStatus = (id, status) => update((p) => ({ ...p, contractors: p.contractors.map((c) => c.id === id ? { ...c, status } : c) }));
+    const order = { due: 0, wait: 1, paid: 2 };
+    const sorted = [...list].sort((a, b) => order[payState(a, project.stages)] - order[payState(b, project.stages)]);
+
+    return html`<div className="grid gap-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap gap-x-5 gap-y-1 text-sm text-muted tnum">
+          <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-r-fg"></span>Пора платить: <b className="text-ink">${counts.due}</b></span>
+          <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-line border border-muted/40"></span>Ждут завершения этапа: <b className="text-ink">${counts.wait}</b></span>
+          <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-g-fg"></span>Оплачено: <b className="text-ink">${counts.paid}</b></span>
+        </div>
+        <button onClick=${() => { setAdding(true); setEditId(null); }} className=${btnPrimary}><${Icon} name="plus" />Добавить подрядчика</button>
+      </div>
+
+      ${adding && html`<div className="rounded-xl border border-line bg-surface p-4 sm:p-5">
+        ${project.stages.length === 0 && html`<p className="mb-3 text-sm text-muted">В проекте ещё нет этапов — подрядчика можно сохранить без привязки и связать позже.</p>`}
+        <${ContractorForm} idp="new-c" stages=${project.stages} onSave=${add} onCancel=${() => setAdding(false)} />
+      </div>`}
+
+      ${list.length === 0 && !adding
+        ? html`<div className="rounded-xl border border-dashed border-line px-6 py-12 text-center text-sm text-muted">Подрядчиков пока нет. Добавьте визуализатора или чертёжника и привяжите задачу к этапу.</div>`
+        : html`<div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            ${sorted.map((c) => editId === c.id
+              ? html`<div key=${c.id} className="rounded-xl border-2 border-ink/20 bg-surface p-4"><${ContractorForm} idp=${'ec-' + c.id} initial=${c} stages=${project.stages} onSave=${(f) => save(c.id, f)} onCancel=${() => setEditId(null)} /></div>`
+              : html`<${ContractorCard} key=${c.id} c=${c} stages=${project.stages} onEdit=${() => { setEditId(c.id); setAdding(false); }} onDelete=${() => del(c.id)} onStatus=${(v) => setStatus(c.id, v)} />`)}
+          </div>`}
+    </div>`;
+  }
+
+  /* ---------- Страница проекта ---------- */
+  function ProjectView({ project, index, update, onBack }) {
+    const [tab, setTab] = useState('stages');
+    const due = project.contractors.filter((c) => payState(c, project.stages) === 'due').length;
+    const pct = progressOf(project);
+    const tabs = [
+      { k: 'stages', label: 'Клиентские этапы и оплаты', icon: 'layers', n: project.stages.length },
+      { k: 'contractors', label: 'Подрядчики', icon: 'users', n: project.contractors.length, alert: due > 0 },
+    ];
+    return html`<div className="grid gap-6">
+      <div><button onClick=${onBack} className=${btnGhost}><${Icon} name="back" />К списку проектов</button></div>
+
+      <section className="rounded-xl border border-line bg-surface p-5 sm:p-6 grid gap-4 sm:grid-cols-[1fr_auto] sm:items-end">
+        <div className="min-w-0">
+          <div className="font-mono text-[11px] tracking-widest text-muted">${projectCode(index)} · создан ${fmtDate(project.createdAt.slice(0, 10))}</div>
+          <h1 className="mt-2 font-display text-xl sm:text-2xl font-medium leading-tight">${project.name}</h1>
+          ${project.description && html`<p className="mt-2 text-muted max-w-prose">${project.description}</p>`}
+          ${project.clientContact && html`<p className="mt-3 flex items-start gap-2 text-sm"><${Icon} name="phone" size=${14} className="mt-0.5 text-muted" /><span className="select-all break-words">${project.clientContact}</span></p>`}
+        </div>
+        <div className="sm:text-right">
+          <div className="font-display text-3xl font-bold tnum">${pct}%</div>
+          <div className="text-xs text-muted">этапов завершено</div>
+        </div>
+      </section>
+
+      <div className="flex gap-1 overflow-x-auto border-b border-line" role="tablist">
+        ${tabs.map((t) => html`<button key=${t.k} role="tab" aria-selected=${tab === t.k} onClick=${() => setTab(t.k)}
+          className=${'relative -mb-px inline-flex items-center gap-2 whitespace-nowrap border-b-2 px-3 py-2.5 text-sm font-medium transition ' + (tab === t.k ? 'border-ink text-ink' : 'border-transparent text-muted hover:text-ink')}>
+          <${Icon} name=${t.icon} size=${15} />${t.label}
+          <span className="rounded-full bg-sunk border border-line px-2 text-xs font-mono tnum">${t.n}</span>
+          ${t.alert && html`<span className="h-2 w-2 rounded-full bg-r-fg pulse-red" title="Есть выплаты к оплате"></span>`}
+        </button>`)}
+      </div>
+
+      ${tab === 'stages' ? html`<${StagesTab} project=${project} update=${update} />` : html`<${ContractorsTab} project=${project} update=${update} />`}
+    </div>`;
+  }
+
+  /* ---------- Приложение ---------- */
+  function App() {
+    const [state, setState] = useState(loadState);
+    const [openId, setOpenId] = useState(null);
+    useEffect(() => { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {} }, [state]);
+    useEffect(() => { window.scrollTo(0, 0); }, [openId]);
+
+    const projects = state.projects;
+    const setProjects = (fn) => setState((s) => ({ ...s, projects: fn(s.projects) }));
+    const create = (f) => setProjects((ps) => [...ps, { id: uid(), name: f.name, description: f.description, clientContact: f.clientContact, createdAt: new Date().toISOString(), stages: [], contractors: [] }]);
+    const remove = (id) => setProjects((ps) => ps.filter((p) => p.id !== id));
+    const updateProject = (id) => (fn) => setProjects((ps) => ps.map((p) => p.id === id ? fn(p) : p));
+    const idx = projects.findIndex((p) => p.id === openId);
+
+    return html`<main className="wrap mx-auto max-w-6xl">
+      ${idx >= 0
+        ? html`<${ProjectView} project=${projects[idx]} index=${idx} update=${updateProject(openId)} onBack=${() => setOpenId(null)} />`
+        : html`<${Dashboard} projects=${projects} demo=${state.demo} onCreate=${create} onOpen=${setOpenId} onDelete=${remove} onClearDemo=${() => setState({ projects: [], demo: false })} />`}
+    </main>`;
+  }
+
+  ReactDOM.createRoot(document.getElementById('root')).render(html`<${App} />`);
+})();
+</script>
+</body>
+</html>
